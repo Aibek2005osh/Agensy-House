@@ -1,6 +1,7 @@
 package java16.service.impl;
 
-import jakarta.persistence.PrePersist;
+import jakarta.annotation.PostConstruct;
+
 import java16.dto.request.LoginDTO;
 import java16.dto.request.RegisterDTO;
 import java16.dto.response.SimpleResponse;
@@ -9,17 +10,18 @@ import java16.enums.Role;
 import java16.repo.UserRepo;
 import java16.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class    UserServiceImpl implements UserService {
 
     private final UserRepo userRepo;
-
+    private final PasswordEncoder passwordEncoder; // Кошуңуз
 
     @Override
     public SimpleResponse userRegister(RegisterDTO registerDTO) {
@@ -31,48 +33,72 @@ public class UserServiceImpl implements UserService {
         if (userRepo.existsByUserName(registerDTO.getUserName())) {
             return new SimpleResponse("Бул колдонуучу аты колдонулуп жатат!", HttpStatus.BAD_REQUEST);
         }
-        user.setUserName(registerDTO.getUserName());
-        user.setEmail(registerDTO.getEmail());
-        user.setPassword(registerDTO.getPassword());
-        user.setPhoneNumber(registerDTO.getPhoneNumber());
+
         try {
+
+            user.setUserName(registerDTO.getUserName());
+            user.setEmail(registerDTO.getEmail());
+            String encode = passwordEncoder.encode(registerDTO.getPassword());// Шифрлөө
+            user.setPassword(encode);
+            user.setPhoneNumber(registerDTO.getPhoneNumber());
+            user.setImageURL(registerDTO.getImageUrl());
             userRepo.save(user);
-        } catch (Exception e) {
-            return SimpleResponse.builder()
-                    .message(e.getMessage())
-                    .status(HttpStatus.CONFLICT)
+
+            return SimpleResponse.
+                    builder()
+                    .message("succes")
+                    .status(HttpStatus.CREATED)
                     .build();
+
+        } catch (RuntimeException e) {
+          return SimpleResponse.builder()
+                  .message("not found ")
+                  .status(HttpStatus.NOT_FOUND)
+
+                  .build();
         }
-        return SimpleResponse.builder()
-                .message("User successfully saved")
-                .status(HttpStatus.CREATED)
-                .build();
     }
 
     @Override
-    public boolean login(LoginDTO loginDTO) {
-
-        User findUser = userRepo.findByEmail((loginDTO.email()));
-        if (findUser == null) {
-            return false;
+    public SimpleResponse login(LoginDTO loginDTO) {
+        try {
+            User findUser = userRepo.findByEmail(loginDTO.email())
+                    .orElseThrow(() -> new RuntimeException("Email табылган жок"));
+            if (passwordEncoder.matches(loginDTO.password(), findUser.getPassword())) { // Текшерүү
+                return SimpleResponse.builder()
+                        .message("Ийгиликтүү кирди")
+                        .status(HttpStatus.OK)
+                        .build();
+            }
+            return SimpleResponse.builder()
+                    .message("Жараксыз email же сырсөз")
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        } catch (Exception e) {
+            return SimpleResponse.builder()
+                    .message(e.getMessage())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
         }
-
-
-        return findUser != null && loginDTO.password().equals(findUser.getPassword());
-
-
     }
-
-    @PrePersist
+    @PostConstruct
     private void init() {
-        User user = new User();
-        user.setUserName("admin");
-        user.setPassword("admin");
-        user.setEmail("admin@admin.com");
-        user.setPhoneNumber("010-1111-2222");
-        user.setRole(Role.ADMIN);
-        userRepo.save(user);
+        String adminEmail = "admin@gmail.com";
 
 
+        if (!userRepo.existsByEmail(adminEmail)) {
+            User user = new User();
+            user.setUserName("Admin");
+            user.setPassword(passwordEncoder.encode("ADMIN123"));
+            user.setEmail(adminEmail);
+            user.setPhoneNumber("+996700000000");
+            user.setRole(Role.ADMIN);
+            userRepo.save(user);
+
+            log.info("Администратор аккаунту ийгиликтүү түзүлдү.");
+        } else {
+            log.info("Администратор аккаунту мурунтан эле бар.");
+        }
     }
+
 }

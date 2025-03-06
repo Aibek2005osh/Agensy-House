@@ -1,12 +1,13 @@
 package java16.entitys;
 
 import jakarta.persistence.*;
+import java16.enums.HomeType;
 import java16.enums.KyrgyzstanRegion;
 import lombok.*;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -17,12 +18,15 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 
-public class House {
+public class House  {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    @Column
     private Long id;
+
+    @Enumerated(EnumType.STRING)
+    private HomeType homeType;
 
     private String title;
 
@@ -30,26 +34,29 @@ public class House {
 
     private BigDecimal price;
 
-    private int personSize;
-
-    private String address;
-
-    private LocalDate date;
-
-
+    private int maxOfGuests;
 
     @Enumerated(EnumType.STRING)
     private KyrgyzstanRegion region;
 
+    private String address;
+
+
+
+    private LocalDate date;
 
 
     @ManyToOne()
     private User owner;
 
-    @OneToMany(mappedBy = "house")
-    private List<Image> images;
+    @OneToMany(mappedBy = "house", cascade = CascadeType.ALL)
+    private List<Image> images = new ArrayList<>();
 
-    @PrePersist @PreUpdate
+
+    @ManyToOne()
+    private User user;
+
+    @PrePersist
     private void onCreate() {
         date = LocalDate.now();
     }

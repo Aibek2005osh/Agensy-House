@@ -1,4 +1,4 @@
-
+package java16.config;
 
 import java16.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +23,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SpringSecurity {
+
     private final UserRepo userRepo;
 
     @Bean
@@ -30,8 +31,9 @@ public class SpringSecurity {
         http.authorizeHttpRequests((authorize) ->
                 authorize
                         .requestMatchers(
-                                "/api/users/login",
-                                "/api/users/register"
+                                "/auth/login",
+                                "/auth/register",
+                                "/api/house/addHouse"
                         ).permitAll()
                         .anyRequest().authenticated());
         http.csrf(AbstractHttpConfigurer::disable);

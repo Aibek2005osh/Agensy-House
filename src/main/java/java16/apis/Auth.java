@@ -1,10 +1,14 @@
 package java16.apis;
 
+import jakarta.annotation.security.PermitAll;
 import java16.dto.request.LoginDTO;
 import java16.dto.request.RegisterDTO;
 
+import java16.dto.response.SimpleResponse;
 import java16.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,20 +17,23 @@ import org.springframework.web.bind.annotation.*;
 public class Auth {
     private final UserService userService;
 
+
+
     @PostMapping("/register")
-    public void register(@RequestBody RegisterDTO registerDTO) {
-        userService.userRegister(registerDTO);
+    public ResponseEntity<SimpleResponse> register(@RequestBody RegisterDTO registerDTO) {
+        return ResponseEntity.ok(userService.userRegister(registerDTO));
     }
 
-    @GetMapping("/login")
-    public boolean login(LoginDTO loginDTO) {
+    @PostMapping("/login")
+    public SimpleResponse login(@RequestBody LoginDTO loginDTO) {
 
         try {
             userService.login(loginDTO);
-            return true;
+            return SimpleResponse.builder()
+                    .message("success").status(HttpStatus.OK).build();
         } catch (Exception e) {
-            throw new RuntimeException(e);
-
+          return SimpleResponse.builder()
+                  .message("error").status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
 
