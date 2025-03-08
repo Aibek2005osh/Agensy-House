@@ -2,9 +2,11 @@ package java16.service.impl;
 
 import jakarta.annotation.PostConstruct;
 
+import java16.dto.response.UserDTO;
 import java16.dto.request.LoginDTO;
 import java16.dto.request.RegisterDTO;
 import java16.dto.response.SimpleResponse;
+import java16.dto.response.SimpleResponseLogin;
 import java16.entitys.User;
 import java16.enums.Role;
 import java16.repo.UserRepo;
@@ -14,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -42,6 +46,7 @@ public class    UserServiceImpl implements UserService {
             user.setPassword(encode);
             user.setPhoneNumber(registerDTO.getPhoneNumber());
             user.setImageURL(registerDTO.getImageUrl());
+            user.setRole(Role.USER);
             userRepo.save(user);
 
             return SimpleResponse.
@@ -60,27 +65,48 @@ public class    UserServiceImpl implements UserService {
     }
 
     @Override
-    public SimpleResponse login(LoginDTO loginDTO) {
+    public SimpleResponseLogin login(LoginDTO loginDTO) {
         try {
             User findUser = userRepo.findByEmail(loginDTO.email())
                     .orElseThrow(() -> new RuntimeException("Email табылган жок"));
             if (passwordEncoder.matches(loginDTO.password(), findUser.getPassword())) { // Текшерүү
-                return SimpleResponse.builder()
+                return SimpleResponseLogin.builder()
                         .message("Ийгиликтүү кирди")
                         .status(HttpStatus.OK)
                         .build();
             }
-            return SimpleResponse.builder()
+            return SimpleResponseLogin.builder()
                     .message("Жараксыз email же сырсөз")
                     .status(HttpStatus.UNAUTHORIZED)
                     .build();
         } catch (Exception e) {
-            return SimpleResponse.builder()
+            return SimpleResponseLogin.builder()
                     .message(e.getMessage())
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .build();
         }
     }
+
+    @Override
+    public UserDTO findByUserId(Long userId) {
+
+        User foundUser = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("user with id : " + userId + "not found"));
+
+        UserDTO userDto = new UserDTO();
+        userDto.setId(foundUser.getId());
+        userDto.setUserName(foundUser.getUsername());
+        userDto.setEmail(foundUser.getEmail());
+        userDto.setImageURL(foundUser.getImageURL());
+        userDto.setRole(foundUser.getRole());
+        return userDto;
+
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return userRepo.findAll();
+    }
+
     @PostConstruct
     private void init() {
         String adminEmail = "admin@gmail.com";

@@ -1,6 +1,4 @@
 package java16.apis;
-
-import jakarta.annotation.security.PermitAll;
 import java16.dto.request.LoginDTO;
 import java16.dto.request.RegisterDTO;
 
@@ -23,6 +21,8 @@ public class Auth {
     public ResponseEntity<SimpleResponse> register(@RequestBody RegisterDTO registerDTO) {
         return ResponseEntity.ok(userService.userRegister(registerDTO));
     }
+
+
 
     @PostMapping("/login")
     public SimpleResponse login(@RequestBody LoginDTO loginDTO) {

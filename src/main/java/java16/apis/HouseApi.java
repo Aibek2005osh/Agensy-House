@@ -6,7 +6,7 @@ import java16.dto.request.GetAllHouseDTO;
 import java16.dto.response.SimpleResponse;
 import java16.service.HouseService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,20 +16,19 @@ public class HouseApi {
 
     private final HouseService houseService;
 
-
-
-    @PostMapping("/addHouse")
+    @PreAuthorize("hasAuthority('USER')")
+   @PostMapping("/addHouse")
     public SimpleResponse add(@RequestBody AddHouseDTO addHouseDTO) {
+
         return houseService.addHouse(addHouseDTO);
+
     }
 
-
-
-
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     @GetMapping("/getAllHouses")
-    public SimpleResponse getAll(@RequestBody GetAllHouseDTO getAllHouse) {
-        return houseService.getAll(getAllHouse);
+    public SimpleResponse getAll() {
+        return
+                houseService.getAll();
     }
-
 
 }

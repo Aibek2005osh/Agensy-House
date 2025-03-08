@@ -30,6 +30,7 @@ public class HouseServiceImpl implements HouseService {
     public SimpleResponse addHouse(AddHouseDTO addHouseDTO) {
         House house = new House();
 
+
         house.setHomeType(addHouseDTO.getHomeType());
         house.setTitle(addHouseDTO.getTitle());
         house.setDescription(addHouseDTO.getDescription());
@@ -49,24 +50,24 @@ public class HouseServiceImpl implements HouseService {
         house.setImages(images);
 
         try {
+
             houserepo.save(house);
             imageRepo.saveAll(images);
             return new SimpleResponse("Successfully added", HttpStatus.CREATED);
+
         } catch (Exception e) {
+
             return new SimpleResponse("Error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
 
 
-
     @Override
-    public SimpleResponse getAll(GetAllHouseDTO getAllHouseDTO) {
+    public SimpleResponse getAll() {
+        List<GetAllHouseDTO> getAllHouseDTO = new ArrayList<>();
         try {
-            // Бардык үйлөрдү репозиторийден алуу
             List<House> houses = houserepo.findAll();
-
-            // Эгер тизме бош болсо
             if (houses.isEmpty()) {
                 return SimpleResponse.builder()
                         .message("No houses found")
@@ -75,7 +76,6 @@ public class HouseServiceImpl implements HouseService {
             }
 
             // Үйлөрдү GetAllHouseDTO форматына которуу
-            List<GetAllHouseDTO> houseDTOs = new ArrayList<>();
             for (House house : houses) {
                 List<String> imageUrls = house.getImages().stream()
                         .map(Image::getImage)
@@ -89,21 +89,26 @@ public class HouseServiceImpl implements HouseService {
                         .address(house.getAddress())
                         .build();
 
-                houseDTOs.add(dto);
+                getAllHouseDTO.add(dto);
             }
 
-            // Ийгиликтүү жооп кайтаруу
             return SimpleResponse.builder()
                     .message("Houses retrieved successfully")
                     .status(HttpStatus.OK)
+
                     .build();
 
         } catch (Exception e) {
-            // Ката кетсе
             return SimpleResponse.builder()
                     .message("Error: " + e.getMessage())
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .build();
         }
     }
+
+    @Override
+    public List<House> getAllHouses() {
+        return houserepo.findAll();
+    }
+
 }

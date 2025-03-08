@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +25,15 @@ public class Image {
 
     private String image;
 
+    private LocalDate createDate;
+
     @ManyToOne
     private House house;
+
+    @PrePersist
+    public void prePersist() {
+        this.createDate = LocalDate.now();
+    }
+
 
 }

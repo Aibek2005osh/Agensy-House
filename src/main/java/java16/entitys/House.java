@@ -53,13 +53,19 @@ public class House  {
     private List<Image> images = new ArrayList<>();
 
 
-    @ManyToOne()
-    private User user;
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    private List<User> user;
+
+
+    @OneToMany(mappedBy = "house", cascade = CascadeType.ALL) // Жаңы байланыш
+    private List<Likes> likes = new ArrayList<>(); // Үйгө коюлган лайктар/дизлайктар
 
     @PrePersist
     private void onCreate() {
         date = LocalDate.now();
     }
+
+
 
 
 }
