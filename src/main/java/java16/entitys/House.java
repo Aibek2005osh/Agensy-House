@@ -46,7 +46,8 @@ public class House  {
     private LocalDate date;
 
 
-    @ManyToOne()
+    @JoinColumn(name = "owner_T")
+    @ManyToOne(cascade = CascadeType.ALL)
     private User owner;
 
     @OneToMany(mappedBy = "house", cascade = CascadeType.ALL)
@@ -57,8 +58,8 @@ public class House  {
     private List<User> user;
 
 
-    @OneToMany(mappedBy = "house", cascade = CascadeType.ALL) // Жаңы байланыш
-    private List<Likes> likes = new ArrayList<>(); // Үйгө коюлган лайктар/дизлайктар
+    @OneToMany(mappedBy = "house", cascade = CascadeType.ALL) //
+    private List<Likes> likes = new ArrayList<>();
 
     @PrePersist
     private void onCreate() {

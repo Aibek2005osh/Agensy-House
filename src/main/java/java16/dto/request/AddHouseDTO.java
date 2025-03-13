@@ -19,6 +19,7 @@ public class AddHouseDTO {
 
 
     private HomeType homeType;
+
     private List<String> images;
     private String title;
     private String description;
@@ -26,6 +27,8 @@ public class AddHouseDTO {
     private int maxOfGuests;
     private KyrgyzstanRegion region;
     private String address;
+
+
 }
 
 

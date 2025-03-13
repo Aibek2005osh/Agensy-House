@@ -2,11 +2,15 @@ package java16.service.impl;
 
 import java16.dto.request.AddHouseDTO;
 import java16.dto.request.GetAllHouseDTO;
+import java16.dto.request.UpdateHouseDTO;
 import java16.dto.response.SimpleResponse;
+import java16.dto.response.SimpleResponseLogin;
 import java16.entitys.House;
 import java16.entitys.Image;
+import java16.entitys.User;
 import java16.repo.HouseRepo;
 import java16.repo.ImageRepo;
+import java16.repo.UserRepo;
 import java16.service.HouseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,11 +29,15 @@ public class HouseServiceImpl implements HouseService {
 
     private final ImageRepo imageRepo;
 
+    private final UserRepo userRepo;
+
 
     @Override
-    public SimpleResponse addHouse(AddHouseDTO addHouseDTO) {
+    public SimpleResponse addHouse(Long userId, AddHouseDTO addHouseDTO) {
         House house = new House();
+        User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("not found user ID : " + userId));
 
+        house.setOwner(user);
 
         house.setHomeType(addHouseDTO.getHomeType());
         house.setTitle(addHouseDTO.getTitle());
@@ -66,16 +74,16 @@ public class HouseServiceImpl implements HouseService {
     @Override
     public SimpleResponse getAll() {
         List<GetAllHouseDTO> getAllHouseDTO = new ArrayList<>();
+
         try {
             List<House> houses = houserepo.findAll();
             if (houses.isEmpty()) {
                 return SimpleResponse.builder()
                         .message("No houses found")
-                        .status(HttpStatus.OK)
+                        .status(HttpStatus.NOT_FOUND)
                         .build();
             }
 
-            // Үйлөрдү GetAllHouseDTO форматына которуу
             for (House house : houses) {
                 List<String> imageUrls = house.getImages().stream()
                         .map(Image::getImage)
@@ -95,10 +103,32 @@ public class HouseServiceImpl implements HouseService {
             return SimpleResponse.builder()
                     .message("Houses retrieved successfully")
                     .status(HttpStatus.OK)
-
+                    .data(getAllHouseDTO)
                     .build();
 
         } catch (Exception e) {
+            return SimpleResponse.builder()
+                    .message("Error: " + e.getMessage())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
+
+        }
+
+    }
+
+    @Override
+    public SimpleResponse findById(Long houseId) {
+        House byUserId = houserepo.findByHouseId(houseId);
+        try {
+
+            return SimpleResponse
+                    .builder()
+                    .message("ok")
+                    .data(byUserId)
+                    .status(HttpStatus.OK)
+                    .build();
+
+        } catch (RuntimeException e) {
             return SimpleResponse.builder()
                     .message("Error: " + e.getMessage())
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -107,8 +137,59 @@ public class HouseServiceImpl implements HouseService {
     }
 
     @Override
-    public List<House> getAllHouses() {
-        return houserepo.findAll();
+    public SimpleResponse deleteHouse(Long houseId) {
+
+        House byHouseId = houserepo.findByHouseId(houseId);
+        try {
+            houserepo.delete(byHouseId);
+            return SimpleResponse
+                    .builder()
+                    .status(HttpStatus.OK)
+                    .message("success delete 👌👌")
+                    .data(byHouseId)
+                    .build();
+        } catch (Exception e) {
+            return SimpleResponse.builder()
+                    .status(HttpStatus.CONFLICT)
+                    .message("error" + e.getMessage())
+                    .data(byHouseId)
+                    .build();
+        }
     }
 
+    @Override
+    public SimpleResponse updateHouse(Long houseId, UpdateHouseDTO updateHouseDTO) {
+
+
+            House byHouseId = houserepo.findByHouseId(houseId);
+
+        List<Image> images = new ArrayList<>();
+        for (String imageUrl : updateHouseDTO.getImages()) {
+            Image image = new Image();
+            image.setImage(imageUrl);
+            image.setHouse(byHouseId);
+            images.add(image);
+        }
+        byHouseId.setImages(images);
+        byHouseId.setTitle(updateHouseDTO.getTitle());
+        byHouseId.setDescription(updateHouseDTO.getDescription());
+        byHouseId.setDescription(updateHouseDTO.getDescription());
+        byHouseId.setMaxOfGuests(updateHouseDTO.getMaxOfGuests());
+
+        try {
+            houserepo.save(byHouseId);
+
+            return SimpleResponse.builder()
+                    .message("successfull udaate ")
+                    .status(HttpStatus.OK)
+                    .data(byHouseId)
+                    .build();
+        } catch (Exception e) {
+            return SimpleResponse.builder()
+                    .message("error udaate "+e.getMessage())
+                    .status(HttpStatus.CONFLICT)
+                    .data(byHouseId)
+                    .build();
+        }
+    }
 }

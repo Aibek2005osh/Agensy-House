@@ -1,5 +1,6 @@
 package java16.entitys;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java16.enums.Role;
 import lombok.*;
@@ -43,47 +44,53 @@ public class User implements UserDetails {
     private Role role;
 
     @ManyToMany(mappedBy = "user", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-
     private List<House> favoriteHouses;
 
-    @OneToMany(cascade = CascadeType.ALL)
+
+    @OneToMany(cascade = CascadeType.PERSIST)
     private List<House> house;
 
     @OneToMany(mappedBy = "user")
     private List<Comments> comments;
 
-
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(role);
     }
 
+
+    @JsonIgnore
     @Override
     public String getPassword() {
         return password;
     }
 
+    @JsonIgnore
     @Override
     public String getUsername() {
         return email;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
 
+
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return  true;
     }
-
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return  true;
     }
-
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
         return  true;
     }

@@ -1,6 +1,7 @@
 package java16.dto.request;
 
 import java16.entitys.Image;
+import java16.entitys.User;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ public class GetAllHouseDTO {
     private BigDecimal price;
 
     private String address;
+
 
 
 

@@ -21,8 +21,11 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<User> getAllUsers() {
-
-        return userRepo.findAll();
+        try {
+            return userRepo.findAll();
+        } catch (Exception e) {
+            throw new RuntimeException("Колдонуучуларды алууда ката кетти", e);
+        }
     }
 
     @Override

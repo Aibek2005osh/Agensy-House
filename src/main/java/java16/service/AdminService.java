@@ -10,4 +10,9 @@ public interface AdminService {
     List<User> getAllUsers();
 
     List<House> getAllHouses();
+
+
+
+
+
 }

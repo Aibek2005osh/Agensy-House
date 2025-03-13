@@ -1,5 +1,7 @@
 package java16.service;
 
+import java16.dto.request.UpdateUserDTO;
+import java16.dto.response.ProfileDTO;
 import java16.dto.response.UserDTO;
 import java16.dto.request.LoginDTO;
 import java16.dto.request.RegisterDTO;
@@ -20,6 +22,12 @@ public interface UserService {
     UserDTO findByUserId(Long userId);
 
     List<User> getAllUsers();
+
+    SimpleResponseLogin updateUserId(Long userId, UpdateUserDTO updateUserDTO);
+
+    ProfileDTO profile(Long userId);
+
+
 
 //     Optional<User>  findBymail(String userName);
 

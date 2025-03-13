@@ -31,9 +31,11 @@ public class SpringSecurity {
         http.authorizeHttpRequests((authorize) ->
                 authorize
                         .requestMatchers(
+                                "/",
                                 "/auth/login",
                                 "/auth/register",
-                                "/api/house/addHouse"
+                                "/swagger-ui/**",  // ✅ Swagger UI'ге уруксат берүү
+                                "/v3/api-docs/**"  // ✅ OpenAPI документтерине уруксат берүү
                         ).permitAll()
                         .anyRequest().authenticated());
         http.csrf(AbstractHttpConfigurer::disable);

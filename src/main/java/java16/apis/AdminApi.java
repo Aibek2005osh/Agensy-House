@@ -15,7 +15,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@PreAuthorize("houseService('ADMIN')")
+//@PreAuthorize("houseService('ADMIN')")
+@PreAuthorize("hasAuthority('ADMIN')")
+
 public class AdminApi {
 
 //    private final UserService userService;
@@ -24,17 +26,15 @@ public class AdminApi {
 
     private final AdminService adminService;
 
-    @PreAuthorize("houseService('ADMIN')")
     @GetMapping("/users")
     public List<User> getAllUsers(){
       return   adminService.getAllUsers();
     }
 
-    @PreAuthorize("houseService('ADMIN')")
     @GetMapping("/houses")
-    public List<House> getAllHoses(){
+    public List<House> getAllHouses(){
       return   adminService.getAllHouses();
 
-    }
 
+    }
 }

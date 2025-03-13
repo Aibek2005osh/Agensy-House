@@ -2,11 +2,17 @@ package java16.service.impl;
 
 import jakarta.annotation.PostConstruct;
 
+import jakarta.transaction.Transactional;
+import java16.dto.request.GetAllHouseDTO;
+import java16.dto.request.UpdateUserDTO;
+import java16.dto.response.ProfileDTO;
 import java16.dto.response.UserDTO;
 import java16.dto.request.LoginDTO;
 import java16.dto.request.RegisterDTO;
 import java16.dto.response.SimpleResponse;
 import java16.dto.response.SimpleResponseLogin;
+import java16.entitys.House;
+import java16.entitys.Image;
 import java16.entitys.User;
 import java16.enums.Role;
 import java16.repo.UserRepo;
@@ -17,6 +23,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -98,6 +107,8 @@ public class    UserServiceImpl implements UserService {
         userDto.setEmail(foundUser.getEmail());
         userDto.setImageURL(foundUser.getImageURL());
         userDto.setRole(foundUser.getRole());
+        userDto.setPhoneNumber(foundUser.getPhoneNumber());
+
         return userDto;
 
     }
@@ -105,6 +116,64 @@ public class    UserServiceImpl implements UserService {
     @Override
     public List<User> getAllUsers() {
         return userRepo.findAll();
+    }
+
+
+    @Override
+    public SimpleResponseLogin updateUserId(Long userId, UpdateUserDTO updateUserDTO) {
+        User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("not found ID : " + userId));
+
+
+      user.setUserName(updateUserDTO.getUserName());
+      user.setEmail(updateUserDTO.getEmail());
+      user.setPassword(passwordEncoder.encode(updateUserDTO.getPassword()));
+      user.setPhoneNumber(updateUserDTO.getPhoneNumber());
+      user.setImageURL(updateUserDTO.getImageURL());
+
+
+        try {
+            userRepo.save(user);
+            return SimpleResponseLogin.builder()
+                    .message("success updatet")
+                    .status(HttpStatus.CREATED)
+                    .build();
+
+
+        } catch (Exception e) {
+            return SimpleResponseLogin.builder()
+                    .message("error"+e.getMessage())
+                    .status(HttpStatus.NO_CONTENT)
+                    .build();
+
+        }
+    }
+
+    @Override
+    @Transactional
+    public ProfileDTO profile(Long userId) {
+
+        User user = userRepo.findById(userId).orElseThrow(()
+                -> new RuntimeException("not found  ID : " + userId));
+        List<GetAllHouseDTO> houseDTOs = new ArrayList<>();
+        List<House> house = user.getHouse();
+        System.err.println(house);
+        for (House house1 : house) {
+           houseDTOs.add(new GetAllHouseDTO(house1.getId(),List.of("http://"), house1.getDescription(), house1.getPrice(),house1.getAddress()));
+        }
+
+
+        houseDTOs.add(new GetAllHouseDTO(100L,List.of("sdf"),"dasdf", BigDecimal.valueOf(20.00),"asdf"));
+
+        // ProfileDTO түзүү
+        return ProfileDTO.builder()
+
+                .userName(user.getUsername())
+
+                .email(user.getEmail())
+
+                .houses(houseDTOs)
+                .build();
+
     }
 
     @PostConstruct
@@ -126,5 +195,6 @@ public class    UserServiceImpl implements UserService {
             log.info("Администратор аккаунту мурунтан эле бар.");
         }
     }
+
 
 }

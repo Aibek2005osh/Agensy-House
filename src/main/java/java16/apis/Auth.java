@@ -26,7 +26,6 @@ public class Auth {
 
     @PostMapping("/login")
     public SimpleResponse login(@RequestBody LoginDTO loginDTO) {
-
         try {
             userService.login(loginDTO);
             return SimpleResponse.builder()
