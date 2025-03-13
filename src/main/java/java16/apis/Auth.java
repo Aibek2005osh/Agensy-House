@@ -26,14 +26,9 @@ public class Auth {
 
     @PostMapping("/login")
     public SimpleResponse login(@RequestBody LoginDTO loginDTO) {
-        try {
-            userService.login(loginDTO);
-            return SimpleResponse.builder()
-                    .message("success").status(HttpStatus.OK).build();
-        } catch (Exception e) {
-          return SimpleResponse.builder()
-                  .message("error").status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+
+        return   userService.login(loginDTO);
+
 
 
     }

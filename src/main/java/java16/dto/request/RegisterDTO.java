@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 public class RegisterDTO {
 
-    private Long id;
+
 
     private String userName;
 

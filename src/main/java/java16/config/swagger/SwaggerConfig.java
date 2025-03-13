@@ -12,9 +12,12 @@ import java.util.Collections;
 
 @Configuration
 public class SwaggerConfig {
-    private static final String  API_KEY = "Bearer Token";
+    private static final String API_KEY = "Bearer Token";
+
     @Bean
-    public OpenAPI customOpenAPI(){
+    public OpenAPI customOpenAPI() {
+
+
 
         return  new OpenAPI()
                 .components(new Components()

@@ -1,13 +1,13 @@
 package java16.config;
 
 import java16.repo.UserRepo;
+import java16.config.jwt.JwtFilter; // JwtFilterди импорт кылуу
+import java16.config.jwt.JwtService; // JwtServiceди импорт кылуу (эгер керек болсо)
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableMethodSecurity
@@ -25,24 +26,28 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SpringSecurity {
 
     private final UserRepo userRepo;
+    private final JwtFilter jwtFilter; // JwtFilterди киргизүү
+    // private final JwtService jwtService; // Эгер керек болсо, кошуңуз
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests((authorize) ->
-                authorize
+        http
+                .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/",
                                 "/auth/login",
                                 "/auth/register",
-                                "/swagger-ui/**",  // ✅ Swagger UI'ге уруксат берүү
-                                "/v3/api-docs/**"  // ✅ OpenAPI документтерине уруксат берүү
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
                         ).permitAll()
-                        .anyRequest().authenticated());
-        http.csrf(AbstractHttpConfigurer::disable);
-        http.httpBasic(Customizer.withDefaults());
+                        .anyRequest().authenticated()
+                )
+                .csrf(AbstractHttpConfigurer::disable)
+                // http.httpBasic(Customizer.withDefaults()); // Бул жерди алып салуу
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // JWT фильтерин кош
+
         return http.build();
     }
-
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -62,9 +67,4 @@ public class SpringSecurity {
                 () -> new UsernameNotFoundException("User " + email + " not found")
         );
     }
-
-//    @Bean
-//    AuthenticationManager authenticationManager() {
-//        return new ProviderManager(authenticationProvider());
-//    }
 }

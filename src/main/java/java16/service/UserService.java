@@ -17,7 +17,7 @@ public interface UserService {
 
     SimpleResponse userRegister(RegisterDTO registerDTO);
 
-    SimpleResponseLogin login(LoginDTO loginDTO);
+    SimpleResponse login(LoginDTO loginDTO);
 
     UserDTO findByUserId(Long userId);
 

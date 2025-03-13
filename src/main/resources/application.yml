@@ -5,12 +5,17 @@ spring:
     url: jdbc:postgresql://localhost:5432/java16
     username: postgres
     password: Aibek005
+
+  security:
+      jwt:
+        secret_key: java16mukhammedurmatpeaksoft
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: update
 server:
   port: 8888
+
 
   error:
     include-message: always

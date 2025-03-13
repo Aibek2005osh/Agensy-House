@@ -3,6 +3,7 @@ package java16.service.impl;
 import jakarta.annotation.PostConstruct;
 
 import jakarta.transaction.Transactional;
+import java16.config.jwt.JwtService;
 import java16.dto.request.GetAllHouseDTO;
 import java16.dto.request.UpdateUserDTO;
 import java16.dto.response.ProfileDTO;
@@ -12,7 +13,6 @@ import java16.dto.request.RegisterDTO;
 import java16.dto.response.SimpleResponse;
 import java16.dto.response.SimpleResponseLogin;
 import java16.entitys.House;
-import java16.entitys.Image;
 import java16.entitys.User;
 import java16.enums.Role;
 import java16.repo.UserRepo;
@@ -23,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +33,9 @@ import java.util.List;
 public class    UserServiceImpl implements UserService {
 
     private final UserRepo userRepo;
-    private final PasswordEncoder passwordEncoder; // Кошуңуз
+    private final PasswordEncoder passwordEncoder;
+
+    private final JwtService jwtService;
 
     @Override
     public SimpleResponse userRegister(RegisterDTO registerDTO) {
@@ -47,6 +48,8 @@ public class    UserServiceImpl implements UserService {
             return new SimpleResponse("Бул колдонуучу аты колдонулуп жатат!", HttpStatus.BAD_REQUEST);
         }
 
+
+
         try {
 
             user.setUserName(registerDTO.getUserName());
@@ -56,12 +59,18 @@ public class    UserServiceImpl implements UserService {
             user.setPhoneNumber(registerDTO.getPhoneNumber());
             user.setImageURL(registerDTO.getImageUrl());
             user.setRole(Role.USER);
-            userRepo.save(user);
+
+            User saveUser = userRepo.save(user);
+            String generateToken = jwtService.generateToken(saveUser);
+
+
+
 
             return SimpleResponse.
                     builder()
                     .message("succes")
                     .status(HttpStatus.CREATED)
+                    .data(generateToken)
                     .build();
 
         } catch (RuntimeException e) {
@@ -74,27 +83,33 @@ public class    UserServiceImpl implements UserService {
     }
 
     @Override
-    public SimpleResponseLogin login(LoginDTO loginDTO) {
+    public SimpleResponse login(LoginDTO loginDTO) {
+
         try {
             User findUser = userRepo.findByEmail(loginDTO.email())
                     .orElseThrow(() -> new RuntimeException("Email табылган жок"));
-            if (passwordEncoder.matches(loginDTO.password(), findUser.getPassword())) { // Текшерүү
-                return SimpleResponseLogin.builder()
+            String genToken = jwtService.generateToken(findUser);
+            if (passwordEncoder.matches(loginDTO.password(), findUser.getPassword())) {
+                return SimpleResponse.builder()
                         .message("Ийгиликтүү кирди")
                         .status(HttpStatus.OK)
+                        .data(genToken)
                         .build();
+
             }
-            return SimpleResponseLogin.builder()
+            return SimpleResponse.builder()
                     .message("Жараксыз email же сырсөз")
                     .status(HttpStatus.UNAUTHORIZED)
                     .build();
         } catch (Exception e) {
-            return SimpleResponseLogin.builder()
+            return SimpleResponse.builder()
                     .message(e.getMessage())
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .build();
         }
     }
+
+
 
     @Override
     public UserDTO findByUserId(Long userId) {
@@ -152,8 +167,7 @@ public class    UserServiceImpl implements UserService {
     @Transactional
     public ProfileDTO profile(Long userId) {
 
-        User user = userRepo.findById(userId).orElseThrow(()
-                -> new RuntimeException("not found  ID : " + userId));
+        User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("not found  ID : " + userId));
         List<GetAllHouseDTO> houseDTOs = new ArrayList<>();
         List<House> house = user.getHouse();
         System.err.println(house);
